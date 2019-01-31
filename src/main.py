@@ -5,7 +5,7 @@ from util import *
 
 
 # load data, grayscale then binary, crop, invert color
-img_gray = cv2.imread('data/test_5.png', cv2.IMREAD_GRAYSCALE)
+img_gray = cv2.imread('data/test_3.png', cv2.IMREAD_GRAYSCALE)
 (thresh, im_bw) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 img_bw_crop = crop_borders(im_bw)
 img = img_bw_crop_inv = cv2.bitwise_not(img_bw_crop)
@@ -22,23 +22,22 @@ ret, labels = cv2.connectedComponents(img_open)
 
 label_hue = np.uint8(179*labels/np.max(labels))
 blank_ch = 255*np.ones_like(label_hue)
-labeled_img = cv2.merge([label_hue, blank_ch, blank_ch])
-
-labeled_img = cv2.cvtColor(labeled_img, cv2.COLOR_BGR2HSV)
-labeled_img[label_hue==0] = 0
+img_ccomp = cv2.merge([label_hue, blank_ch, blank_ch])
+img_ccomp = cv2.cvtColor(img_ccomp, cv2.COLOR_BGR2HSV)
+img_ccomp[label_hue==0] = 0
 
 (values,counts) = np.unique(labels,return_counts=True)
 second_most_common_label = np.argwhere(counts == np.sort(counts)[-2]).squeeze()
+img_main_axis = labels == second_most_common_label
 
-main_axis_img = labels == second_most_common_label
 
 # visualization
 images = [
 		  ('Input Grayscale', img_gray),
 		  ('Preprocessed', img),
 		  ('Morphology: Opening', img_open),
-		  ('Connected Components', labeled_img),
-		  ('Main Axis', main_axis_img)
+		  ('Connected Components', img_ccomp),
+		  ('Main Axis', img_main_axis)
 		  ]
 subplot_rows = 1
 subplot_cols = len(images)
@@ -49,4 +48,6 @@ for index, title_and_image in enumerate(images):
 	plt.title(title)
 	fig.axes.get_yaxis().set_ticks([])
 	fig.axes.get_xaxis().set_ticks([])
-plt.show()
+fig = plt.gcf()
+fig.set_size_inches(18.5, 10.5)
+# plt.show()
