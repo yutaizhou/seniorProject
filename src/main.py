@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from util import *
 
 
-# load data, grayscale then binary, crop, invert
-img_gray = cv2.imread('data/test_1.png', cv2.IMREAD_GRAYSCALE)
+# load data, grayscale then binary, crop, invert color
+img_gray = cv2.imread('data/test_5.png', cv2.IMREAD_GRAYSCALE)
 (thresh, im_bw) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 img_bw_crop = crop_borders(im_bw)
 img = img_bw_crop_inv = cv2.bitwise_not(img_bw_crop)
@@ -27,11 +27,19 @@ labeled_img = cv2.merge([label_hue, blank_ch, blank_ch])
 labeled_img = cv2.cvtColor(labeled_img, cv2.COLOR_BGR2HSV)
 labeled_img[label_hue==0] = 0
 
+(values,counts) = np.unique(labels,return_counts=True)
+second_most_common_label = np.argwhere(counts == np.sort(counts)[-2]).squeeze()
+
+main_axis_img = labels == second_most_common_label
+
 # visualization
-images = [('Input Grayscale', img_gray),
-		  ('Post Processed', img),
-		  ('Opening', img_open),
-		  ('Connected Components', labeled_img)]
+images = [
+		  ('Input Grayscale', img_gray),
+		  ('Preprocessed', img),
+		  ('Morphology: Opening', img_open),
+		  ('Connected Components', labeled_img),
+		  ('Main Axis', main_axis_img)
+		  ]
 subplot_rows = 1
 subplot_cols = len(images)
 for index, title_and_image in enumerate(images):
