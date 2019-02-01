@@ -37,7 +37,10 @@ def dilatation(val):
     cv.imshow(title_dilatation_window, dilatation_dst)
 
 
-src = cv.imread('data/test_2.png')
+img_gray = cv.imread('data/test_3.png', cv.IMREAD_GRAYSCALE)
+(thresh, im_bw) = cv.threshold(img_gray, 128, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+img_bw_crop = crop_borders(im_bw)
+src = cv.bitwise_not(img_bw_crop)
 
 cv.namedWindow(title_erosion_window)
 cv.createTrackbar(title_trackbar_element_type, title_erosion_window , 0, max_elem, erosion)
@@ -46,5 +49,5 @@ cv.namedWindow(title_dilatation_window)
 cv.createTrackbar(title_trackbar_element_type, title_dilatation_window , 0, max_elem, dilatation)
 cv.createTrackbar(title_trackbar_kernel_size, title_dilatation_window , 0, max_kernel_size, dilatation)
 erosion(0)
-dilatation(0)
+# dilatation(0)
 cv.waitKey()
