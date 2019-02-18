@@ -8,12 +8,12 @@ from scipy.sparse.csgraph import dijkstra
 def compute_main_axis_length(img):
 	rows, cols = img.shape
 	adjacency = make_adjacency_matrix(img)
-
-	source_index = to_index(cols, 2746, 1141)
-	target_index = to_index(cols, 6, 878)
+	source_index = to_index(cols, *get_source_coordinate(img))
 
 	dist_matrix, predecessors = dijkstra(adjacency, directed=False, indices=[source_index],
 						   				 unweighted=True, return_predecessors=True)
+
+	target_index = get_target_index(dist_matrix)
 
 	pixel_index = target_index
 	pixels_path = []
@@ -35,6 +35,17 @@ def to_index(cols, row, col):
 
 def to_coordinates(cols, index):
 	return index // cols, index % cols
+
+
+def get_source_coordinate(img):
+	row_idx, col_idx = np.nonzero(img);
+	row, index = np.max(row_idx), np.argmax(row_idx)
+	col = col_idx[index]
+	return row, col
+
+
+def get_target_index(dist_matrix):
+	return np.argmax(dist_matrix != np.inf)
 
 
 def make_adjacency_matrix(img):
