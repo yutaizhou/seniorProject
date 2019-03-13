@@ -6,7 +6,7 @@ from skimage.morphology import thin
 
 
 # load data, grayscale then binary, crop, invert color
-img_gray = cv2.imread('data/test_1.png', cv2.IMREAD_GRAYSCALE)
+img_gray = cv2.imread('data/test_5.png', cv2.IMREAD_GRAYSCALE)
 (thresh, im_bw) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 img_bw_crop = crop_borders(im_bw)
 img = cv2.bitwise_not(img_bw_crop)
