@@ -37,7 +37,7 @@ def dilatation(val):
     cv.imshow(title_dilatation_window, dilatation_dst)
 
 
-img_gray = cv.imread('data/test_3.png', cv.IMREAD_GRAYSCALE)
+img_gray = cv.imread('data/images/test_3.png', cv.IMREAD_GRAYSCALE)
 (thresh, im_bw) = cv.threshold(img_gray, 128, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
 img_bw_crop = crop_borders(im_bw)
 src = cv.bitwise_not(img_bw_crop)

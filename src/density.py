@@ -2,12 +2,11 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from util import *
-from scipy.spatial import ConvexHull
 
 
 
 # load data, grayscale then binary, crop, invert color
-img_gray = cv2.imread('data/test_4.png', cv2.IMREAD_GRAYSCALE)
+img_gray = cv2.imread('data/images/test_4.png', cv2.IMREAD_GRAYSCALE)
 (thresh, im_bw) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 img_bw_crop = crop_borders(im_bw)
 img_pre = cv2.bitwise_not(img_bw_crop)
