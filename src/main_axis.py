@@ -1,3 +1,4 @@
+import sys
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,15 +6,18 @@ from util import *
 from skimage.morphology import thin
 
 
+if len(sys.argv) < 3:
+	sys.exit('ERROR! Please execute the program with the following format: python main_axis.py [path_to_image] [erosion_kernel_size]')
+img_path = sys.argv[1]
+
 # load data, grayscale then binary, crop, invert color
-img_gray = cv2.imread('data/images/test_2.png', cv2.IMREAD_GRAYSCALE)
-(thresh, im_bw) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-img_bw_crop = crop_borders(im_bw)
+img_gray = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+(thresh, img_bw) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+img_bw_crop = crop_borders(img_bw)
 img = cv2.bitwise_not(img_bw_crop)
 
-
 # opening to remove non-main axis
-erosion_size = 3
+erosion_size = int(sys.argv[2]) 
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2*erosion_size + 1, 2*erosion_size+1), (erosion_size, erosion_size))
 img_open = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
 
@@ -35,7 +39,6 @@ diameter_pixels = np.mean(binary_main_axis[-1:-40:-1,:]) * np.float64(binary_mai
 # calculate main axis length
 # first thin
 img_main_axis_thin = thin(binary_main_axis).astype('uint8')
-_, labels_main_axis_thin = cv2.connectedComponents(img_main_axis_thin)
 
 # then use dijkstra
 length_pixels, img_length = compute_main_axis_length(img_main_axis_thin)
@@ -45,12 +48,15 @@ print(f'Diameter: {diameter_pixels}\nLength: {length_pixels}\n')
 # visualization
 visualize = 1
 images = [
-		  ('Input Grayscale', img_gray),
-		#   ('Preprocessed', img),
+		#   ('Input Grayscale ', img_gray),
+		#   ('Input Binary', img_bw),
+		#   ('Binary Cropped', img_bw_crop),
+		  ('Preprocessed', img),
 		#   ('Morphology: Opening', img_open),
 		#   ('Connected Components', img_ccomp),
-		#   ('Main Axis', img_main_axis),
+		  ('Main Axis', img_main_axis),
 		#   ('Main Axis Skeleton', img_main_axis_thin),
+		  ('Shortest Path', img_length)
 		  ]
 if visualize:
 	subplot_rows = 1

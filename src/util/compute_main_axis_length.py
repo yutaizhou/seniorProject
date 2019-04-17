@@ -12,7 +12,6 @@ def compute_main_axis_length(img):
 
 	dist_matrix, predecessors = dijkstra(adjacency, directed=False, indices=[source_index],
 						   				 unweighted=True, return_predecessors=True)
-
 	target_index = get_target_index(dist_matrix)
 
 	pixel_index = target_index

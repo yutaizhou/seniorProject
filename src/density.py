@@ -1,62 +1,81 @@
+import sys
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from util import *
 
 
+if len(sys.argv) < 2:
+	sys.exit('ERROR! Please execute the program with the following format: python density.py [path_to_image]')
+img_path = sys.argv[1]
 
 # load data, grayscale then binary, crop, invert color
-img_gray = cv2.imread('data/images/test_4.png', cv2.IMREAD_GRAYSCALE)
+img_gray = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 (thresh, im_bw) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 img_bw_crop = crop_borders(im_bw)
-img_pre = cv2.bitwise_not(img_bw_crop)
+img = cv2.bitwise_not(img_bw_crop)
 
+# closing to fill in gaps of panicle
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (199, 199))
-img = cv2.morphologyEx(img_pre, cv2.MORPH_CLOSE, kernel)
+img_close = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
 
-im2, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-# create hull array for convex hull points
-hull = []
+# find contours
+contours, _ = cv2.findContours(img_close, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
  
-# calculate points for each contour
+# create convex hull for each contour
+convex_hulls = []
 for i in range(len(contours)):
-    # creating convex hull object for each contour
-    hull.append(cv2.convexHull(contours[i], False))
+    convex_hulls.append(cv2.convexHull(contours[i], False))
 
-# create an empty black image
-drawing = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
-color_ch = (0, 255, 0)  # blue - color for convex hull
-#     color_contours = (0, 0,0 )  # green - color for contours
+# draw convex hull object
+num_hulls = len(convex_hulls)
+subplot_rows = 3
+subplot_cols = np.ceil((num_hulls + 1) / subplot_rows)
 
-# draw contours and hull points
-# for i in range(len(contours)):
-#     # draw ith contour
-#     cv2.drawContours(drawing, contours, i, color_contours, 1, 8, hierarchy)
-# draw 0th convex hull object
-cv2.drawContours(drawing, hull, 0, color_ch, 1, 8)
+fig = plt.subplot(subplot_rows, subplot_cols, 1)
+plt.imshow(img_close, cmap='gray')
+plt.title('Preprocessed Input')
+fig.axes.get_yaxis().set_ticks([])
+fig.axes.get_xaxis().set_ticks([])
 
-#count points belonging to CH
+for index, convex_hull in enumerate(convex_hulls):
+	fig = plt.subplot(subplot_rows, subplot_cols, index+2)
+	drawing = np.zeros((img_close.shape[0], img_close.shape[1], 3), np.uint8)
+	cv2.drawContours(drawing, convex_hulls, index, (0, 255, 0), 1, 8)
+	plt.imshow(drawing, cmap='gray')
+	plt.title(index)
+	fig.axes.get_yaxis().set_ticks([])
+	fig.axes.get_xaxis().set_ticks([])
+fig = plt.gcf()
+fig.set_size_inches(18.5, 10.5)
+plt.show()
+
+# count points belonging to CH
+hull_index = int(input('Please enter index of the desired convex hull: '))
 count = 0
-for row in range(img.shape[0]):
-    for col in range(img.shape[1]):
-        pt_location = cv2.pointPolygonTest(hull[0], (row, col), False)
+for row in range(img_close.shape[0]):
+    for col in range(img_close.shape[1]):
+        pt_location = cv2.pointPolygonTest(convex_hulls[hull_index], (row, col), False)
         if pt_location >= 0:
             count += 1
 
 
-print(
-    f'Pixels in CH: {count}\nPixels in Panicle: {len(np.nonzero(img_pre)[1])}\nRatio: {len(np.nonzero(img_pre)[1])/count}')
+print(f'Pixels in CH: {count}\nPixels in Panicle: {len(np.nonzero(img)[1])}\nRatio: {len(np.nonzero(img)[1])/count * 100:.4}%')
 
 
 # visualization
 visualize = 1
-images = [
-        ('Input', img_pre),
-        ('Morphology: Closing', img),
-		('Convex Hull', drawing),
-]
+
 if visualize:
+	drawing = np.zeros((img_close.shape[0], img_close.shape[1], 3), np.uint8)
+	cv2.drawContours(drawing, convex_hulls, hull_index, (0, 255, 0), 1, 8)
+
+	images = [
+        ('Input', img),
+        ('Morphology: Closing', img_close),
+		('Convex Hull', drawing),
+	]
+
 	subplot_rows = 1
 	subplot_cols = len(images)
 	for index, title_and_image in enumerate(images):
